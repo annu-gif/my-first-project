@@ -16,7 +16,7 @@ jobs:
       - name: add SSH key
         run: |
            mkdir -p ~/.ssh
-           echo "${{ secrets.EC2_SSH_KEY ]]" > ~/.ssh/known_hosts
+           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/known_hosts
            chmod 600 ~/.ssh/id_ed25519
 
       - name: add EC2 to known hosts
