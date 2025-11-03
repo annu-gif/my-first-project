@@ -21,8 +21,6 @@ jobs:
 
       - name: add EC2 to known hosts
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/id_ed25519
-
-      - name: deploy to ec2
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}
             cd /ubuntu
             if [ ! -d "app" ];
