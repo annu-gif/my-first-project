@@ -1,0 +1,38 @@
+name: deploy docker to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v3
+
+      - name: add SSH key
+        run: |
+           mkdir -p ~/.ssh
+           echo "${{ secrets.EC2_SSH_KEY ]]" > ~/.ssh/known_hosts
+           chmod 600 ~/.ssh/id_ed25519
+
+      - name: add EC2 to known hosts
+        run:
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF"
+            cd /home/ubuntu
+            if [ ! -d "app" ]; then
+              get clone https://github.com/<YOUR_USERNAME>/<YOUR_REPO>.git app
+            else
+              cd app
+              git reset --hard
+              git pull
+              cd ..
+            fi
+            cd app
+            chmod +x scripts/*.sh
+            ./scripts/build_docker.sh
+            ./scripts/run_docker.sh
+
