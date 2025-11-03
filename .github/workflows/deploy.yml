@@ -23,8 +23,8 @@ jobs:
         run:
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}
             cd /ubuntu
-            if [ ! -d "app" ]; then
-              get clone https://github.com/annu-gif/my-first-project.git app
+            if [ ! -d "app" ];
+              git clone https://github.com/annu-gif/my-first-project.git app
             else
               cd app
               git reset --hard
