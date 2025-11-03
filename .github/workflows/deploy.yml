@@ -24,7 +24,7 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF"
             cd /home/ubuntu
             if [ ! -d "app" ]; then
-              get clone https://github.com/<YOUR_USERNAME>/<YOUR_REPO>.git app
+              get clone https://github.com/annu-gif/my-first-project.git app
             else
               cd app
               git reset --hard
