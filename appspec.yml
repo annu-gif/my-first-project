@@ -1,0 +1,14 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+   destination: /home/ubuntu/app
+
+hooks:
+  AfterInstall:
+  - location: script/build_docker.sh  
+    timeout: 180
+    runas: ubuntu
+  - location: script/run_docker.sh
+    timeout: 180
+    runas: ubuntu
