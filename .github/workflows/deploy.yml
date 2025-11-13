@@ -20,16 +20,13 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
 
       - name: add EC2 to known host
-        run:
+        run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
           chmod 600 key.pem
           ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}
-
           if [ ! -d "app" ]; then
                git clone https://github.com/annu-gif/my-first-project.git app
-               
           fi
-            
           cd app
           chmod +x scripts/*.sh
           ./scripts/build_docker.sh
