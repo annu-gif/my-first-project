@@ -26,11 +26,11 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}
 
           if [ ! -d "app" ]; then
-               git clone https://github.com/annu-gif/my-first-project.git app
+               git clone https://github.com/annu-gif/my-first-project.git
                
           fi
             
-          cd app
+          cd my-first-project
           chmod +x scripts/*.sh
           ./scripts/build_docker.sh
           ./scripts/run_docker.sh
