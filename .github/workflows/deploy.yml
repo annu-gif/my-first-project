@@ -1,4 +1,4 @@
-name: deploy docker to EC2
+name: Deploy to EC2 via ECR
 
 on:
   push:
@@ -10,25 +10,47 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: checkout repo
-        uses: actions/checkout@v4
+    - name: Checkout repo
+      uses: actions/checkout@v3
 
-      - name: add SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
+    - name: Configure AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: add EC2 to known host
-        run: |
-          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
-          chmod 600 key.pem
-          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}
-          if [ ! -d "app" ]; then
-               git clone https://github.com/annu-gif/my-first-project.git app
-          fi
-          cd app
-          chmod +x scripts/*.sh
-          ./scripts/build_docker.sh
-          ./scripts/run_docker.sh
-          EOF
+    - name: Login to ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build, Tag & Push image to ECR
+      run: |
+        IMAGE_URI="${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest"
+
+        docker build -t $IMAGE_URI .
+        docker push $IMAGE_URI
+
+    - name: Prepare SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+
+    - name: Deploy on EC2
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_HOST }} << 'EOF'
+          IMAGE_URI="${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest"
+
+          # Login to ECR from EC2
+          aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+
+          # Pull the latest image
+          docker pull $IMAGE_URI
+
+          # Stop and remove old container
+          docker rm -f myapp || true
+
+          # Run new container
+          docker run -d --name myapp -p 80:80 $IMAGE_URI
+        EOF
