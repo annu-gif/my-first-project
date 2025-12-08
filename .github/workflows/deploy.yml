@@ -37,20 +37,23 @@ jobs:
         echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_ed25519
         chmod 600 ~/.ssh/id_ed25519
 
-    - name: Deploy on EC2
-      run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_HOST }} << 'EOF'
-          IMAGE_URI="${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest"
+    -   name: SSH into EC2 and deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          script: |
+            sudo systemctl start docker || true
+            aws ecr get-login-password --region us-east-1 \
+              | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
 
-          # Login to ECR from EC2
-          aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+            sudo docker pull ${{ steps.login-ecr.outputs.registry }}/your-ecr-repo-name:latest
 
-          # Pull the latest image
-          docker pull $IMAGE_URI
+            # Stop old container if running
+            sudo docker stop myapp || true
+            sudo docker rm myapp || true
 
-          # Stop and remove old container
-          docker rm -f myapp || true
-
-          # Run new container
-          docker run -d --name myapp -p 80:80 $IMAGE_URI
-        EOF
+            # Run new container
+            sudo docker run -d --name myapp -p 80:3000 \
+              ${{ steps.login-ecr.outputs.registry }}/your-ecr-repo-name:latest
