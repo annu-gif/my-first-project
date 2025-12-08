@@ -48,7 +48,7 @@ jobs:
             aws ecr get-login-password --region us-east-1 \
               | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
 
-            sudo docker pull ${{ steps.login-ecr.outputs.registry }}/your-ecr-repo-name:latest
+            sudo docker pull ${{ steps.login-ecr.outputs.registry }}/ecr-repo:latest
 
             # Stop old container if running
             sudo docker stop myapp || true
@@ -56,4 +56,4 @@ jobs:
 
             # Run new container
             sudo docker run -d --name myapp -p 80:3000 \
-              ${{ steps.login-ecr.outputs.registry }}/your-ecr-repo-name:latest
+              ${{ steps.login-ecr.outputs.registry }}/ecr-repo:latest
