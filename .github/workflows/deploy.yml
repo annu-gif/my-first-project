@@ -20,8 +20,10 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: s3 bucket 
-      run: |
+      
+    - name: Upload test file to S3
+    run-on: node uploadToS3.js
+
          npm install @aws-sdk/client-s3
          import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
          import fs from "fs";
