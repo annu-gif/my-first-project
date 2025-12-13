@@ -49,6 +49,33 @@ jobs:
               | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
 
             sudo docker pull ${{ steps.login-ecr.outputs.registry }}/ecr-repo:latest
+            
+    -   name: s3 bucket 
+        run:
+         npm install @aws-sdk/client-s3
+         import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+         import fs from "fs";
+
+         const s3 = new S3Client
+         ({
+         region:us-east-1
+         });
+
+         async function uploadFile() {
+         const fileStream = fs.createReadStream("test.txt");
+
+         const command = new PutObjectCommand({
+         Bucket:"test-water-bucket",
+         Key:"uploads/test.txt",
+         Body:fileStream
+         });
+
+         await s3.send(command);
+         console.log("File uploaded");
+         }
+ 
+         uploadFile();
+
 
             # Stop old container if running
             sudo docker stop myapp || true
