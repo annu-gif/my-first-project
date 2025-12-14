@@ -20,19 +20,13 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
         
-    - name: s3 bucket
-    
-       echo "Creating test.txt"
-       echo "Hello from my Dockerized Node.js app!" > test.txt
-       echo "This is a test file for S3 upload." >> test.txt
+    - name: Upload files to S3
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+      run: aws s3 cp uploads/ s3://test-water-bucket/uploads/test.txt
 
-
-        # Install AWS CLI (if not installed)
-        sudo apt-get update && sudo apt-get install -y awscli
-
-        # Upload file to S3
-        aws s3 cp test.txt s3://test-water-bucket/uploads/test.txt
-   
     - name: Login to ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
