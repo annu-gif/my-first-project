@@ -1,0 +1,3 @@
+Hello from my Dockerized Node.js app!
+This is a test file for S3 upload.
+Date: 2025-12-13
