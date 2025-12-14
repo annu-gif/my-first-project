@@ -7,14 +7,14 @@ const app = express();
 const port = 3000;
 
 const s3 = new S3Client({ region: "us-east-1" });
-const bucketName = "myapp-demo-bucket-123";
+const bucketName = "test-water-bucket";
 
 // Route to view file
 app.get("/", async (req, res) => {
   try {
     const command = new GetObjectCommand({
       Bucket: bucketName,
-      Key: "uploads/myfile.txt", // Your S3 file path
+      Key: "testfile.txt", // Your S3 file path
     });
 
     const url = await getSignedUrl(s3, command, { expiresIn: 3600 }); // valid for 1 hour
