@@ -1,37 +1,30 @@
-const express = require("express");
-const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-
-const app = express();
-const PORT = 3000;
-
-const s3 = new S3Client({
-  region: process.env.AWS_REGION || "us-east-1"
-});
-
-const BUCKET_NAME = "test-water-bucket";
-const FILE_KEY = "uploads/testfile.txt";
-
 app.get("/", async (req, res) => {
   try {
     const command = new GetObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: FILE_KEY
+      Bucket: test-water-bucket,
+      Key: uploads/testfile.txt
     });
 
-    const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+    const data = await s3.send(command);
+    const bodyContents = await streamToString(data.Body);
 
     res.send(`
-      <h2>S3 File Viewer</h2>
-      <a href="${url}" target="_blank">View file</a>
+      <h2>Contents of testfile.txt</h2>
+      <pre>${bodyContents}</pre>
     `);
+
   } catch (err) {
     console.error(err);
     res.status(500).send("Error fetching file from S3");
   }
 });
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("App running on port 3000");
-});
-
+// Helper to convert S3 stream to string
+async function streamToString(stream) {
+  return await new Promise((resolve, reject) => {
+    const chunks = [];
+    stream.on("data", (chunk) => chunks.push(chunk));
+    stream.on("error", reject);
+    stream.on("end", () => resolve(Buffer.concat(chunks).toString("utf-8")));
+  });
+}
