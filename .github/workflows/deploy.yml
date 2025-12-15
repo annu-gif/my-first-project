@@ -1,60 +1,11 @@
-name: Deploy to EC2 via ECR
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
-
-    - name: Configure AWS
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
-
-
-    - name: Login to ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
-
-    - name: Build, Tag & Push image to ECR
-      run: |
-        IMAGE_URI="${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest"
-
-        docker build -t $IMAGE_URI .
-        docker push $IMAGE_URI
-
-    - name: Prepare SSH key
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_ed25519
-        chmod 600 ~/.ssh/id_ed25519
-
-    -   name: SSH into EC2 and deploy
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          script: |
-            sudo systemctl start docker || true
-            aws ecr get-login-password --region us-east-1 \
-              | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
-
-            sudo docker pull ${{ steps.login-ecr.outputs.registry }}/ecr-repo:latest
-            
-            # Stop old container if running
-            sudo docker stop myapp || true
-            sudo docker rm myapp || true
-
-            # Run new container
-            sudo docker run -d --name myapp -p 80:3000 \
-              ${{ steps.login-ecr.outputs.registry }}/ecr-repo:latest
+ - name: Deploy to EC2
+   uses: appleboy/ssh-action@v0.1.9
+   with:
+     host: ${{ secrets.EC2_HOST }}
+     username: ec2-user
+     key: ${{ secrets.EC2_SSH_KEY }}
+     script: |
+      docker pull 879974976218.dkr.ecr.us-east-1.amazonaws.com/ecr-repo:latest
+      docker stop myapp || true
+      docker rm myapp || true
+      docker run -d --name myapp -p 80:3000 879974976218.dkr.ecr.us-east-1.amazonaws.com/ecr-repo:latest
