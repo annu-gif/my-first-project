@@ -11,5 +11,4 @@ EXPOSE 3000
 
 ENV AWS_REGION=us-east-1
 
-# Run your S3 bucket app
-CMD ["node", "s3bucket.js"]
+CMD ["npm", "start"]
