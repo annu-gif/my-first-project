@@ -1,11 +1,11 @@
- - name: Deploy to EC2
-   uses: appleboy/ssh-action@v0.1.9
-   with:
-     host: ${{ secrets.EC2_HOST }}
-     username: ec2-user
-     key: ${{ secrets.EC2_SSH_KEY }}
-     script: |
-      docker pull 879974976218.dkr.ecr.us-east-1.amazonaws.com/ecr-repo:latest
-      docker stop myapp || true
-      docker rm myapp || true
+- name: Deploy to EC2
+  uses: appleboy/ssh-action@v0.1.9
+  with:
+    host: ${{ secrets.EC2_HOST }}
+    username: ec2-user
+    key: ${{ secrets.EC2_SSH_KEY }}
+    script: |
+       docker pull 879974976218.dkr.ecr.us-east-1.amazonaws.com/ecr-repo:latest
+       docker stop myapp || true
+       docker rm myapp || true
       docker run -d --name myapp -p 80:3000 879974976218.dkr.ecr.us-east-1.amazonaws.com/ecr-repo:latest
